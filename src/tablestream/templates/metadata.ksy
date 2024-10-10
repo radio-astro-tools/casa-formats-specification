@@ -8,11 +8,17 @@ seq:
   - id: aipsio_header
     type: header
   - id: number_of_table_rows
-    type: u4
+    type:
+          switch-on: version
+          cases:
+            1: u4
+            2: u4
+            3: u8
   - id: endianess
     type: u4
   - id: table_type
     type: string
+    doc: expect "PlainTable"
   - id: table_description
     type: table_description
 
@@ -36,7 +42,7 @@ types:
         type: u4
   table_description:
     seq:
-      - id: table_description_header
+      - id: table_desciprtion_header
         type: header
       - id: table_description_name
         type: string
