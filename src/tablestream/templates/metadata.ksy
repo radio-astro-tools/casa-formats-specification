@@ -67,6 +67,7 @@ meta:
     license: LGPL-2.0-or-later
     ks-version: 0.10
     endian: be
+    imports: dtype
 
 
 doc: |
@@ -84,7 +85,7 @@ seq:
     - id: size
       type: u4
     - id: type
-      type: string
+      type: dtype::string
     - id: version
       type: u4
     - id: nrows
@@ -97,36 +98,15 @@ seq:
     - id: little_endian
       type: u4
     - id: name
-      type: string
+      type: dtype::string
       doc: |
         expect "PlainTable"
     - id: desc
       type: table_desc
       doc: |
         TableDesc
-      
-types:
-    complex8:
-        seq:
-          - id: real
-            type: f4
-          - id: imaginary
-            type: f4
-    complex16:
-        seq:
-          - id: real
-            type: f8
-          - id: imaginary
-            type: f8
-    string:
-        seq:
-          - id: length
-            type: u4
-          - id: value
-            type: str
-            encoding: ASCII
-            size: length
 
+types:
     array:
         params:
           - id: type
@@ -135,7 +115,7 @@ types:
           - id: size
             type: u4
           - id: cxx_type
-            type: string
+            type: dtype::string
           - id: version
             type: u4
           - id: n_shape
@@ -152,19 +132,19 @@ types:
             type:
                 switch-on: type
                 cases:
-                  13: u1
-                  14: s1
-                  15: u1
-                  16: s2
-                  17: u2
-                  18: s4
-                  19: u4
-                  20: f4
-                  21: f8
-                  22: complex8
-                  23: complex16
-                  24: string
-                  30: s8
+                  13: dtype::uint1
+                  14: dtype::int1
+                  15: dtype::uint1
+                  16: dtype::int2
+                  17: dtype::uint2
+                  18: dtype::int4
+                  19: dtype::uint4
+                  20: dtype::float4
+                  21: dtype::float8
+                  22: dtype::complex8
+                  23: dtype::complex16
+                  24: dtype::string
+                  30: dtype::int8
 
     default:
         params:
@@ -175,21 +155,21 @@ types:
             type:
                 switch-on: type
                 cases:
-                  0:  u1
-                  1:  s1
-                  2:  u1
-                  3:  s2
-                  4:  u2
-                  5:  s4
-                  6:  u4
-                  7:  f4
-                  8:  f8
-                  9:  complex8
-                  10: complex16
-                  11: string
-                  29: s8
+                  0:  dtype::uint1
+                  1:  dtype::int1
+                  2:  dtype::uint1
+                  3:  dtype::int2
+                  4:  dtype::uint2
+                  5:  dtype::int4
+                  6:  dtype::uint4
+                  7:  dtype::float4
+                  8:  dtype::float8
+                  9:  dtype::complex8
+                  10: dtype::complex16
+                  11: dtype::string
+                  29: dtype::int8
                   _: array(type)
-                  
+
     data_value:
         params:
           - id: type
@@ -199,21 +179,21 @@ types:
             type:
                 switch-on: type
                 cases:
-                  0:  u1
-                  1:  s1
-                  2:  u1
-                  3:  s2
-                  4:  u2
-                  5:  s4
-                  6:  u4
-                  7:  f4
-                  8:  f8
-                  9:  complex8
-                  10: complex16
-                  11: string
-                  12: string
+                  0:  dtype::uint1
+                  1:  dtype::int1
+                  2:  dtype::uint1
+                  3:  dtype::int2
+                  4:  dtype::uint2
+                  5:  dtype::int4
+                  6:  dtype::uint4
+                  7:  dtype::float4
+                  8:  dtype::float8
+                  9:  dtype::complex8
+                  10: dtype::complex16
+                  11: dtype::string
+                  12: dtype::string
                   25: table_record
-                  29: s8
+                  29: dtype::int8
                   _: array(type)
 
     type_name:
@@ -232,7 +212,7 @@ types:
     record_field_desc:
         seq:
           - id: name
-            type: string
+            type: dtype::string
           - id: type
             type: s4
           - id: subtable_filler
@@ -245,7 +225,7 @@ types:
             type: iposition
             if: type == 24
           - id: comment
-            type: string
+            type: dtype::string
             if: type != 25
           - id: subrecord
             type: subrecord_desc
@@ -263,7 +243,7 @@ types:
           - id: size
             type: u4
           - id: type
-            type: string
+            type: dtype::string
 
     subrecord_desc:
         seq:
@@ -276,7 +256,7 @@ types:
           - id: n_fields
             type: s4
           - id: comment
-            type: string
+            type: dtype::string
 
     record_desc:
         seq:
@@ -302,7 +282,7 @@ types:
     iposition:
         seq:
           - id: type
-            type: string
+            type: dtype::string
           - id: version
             doc: |
               1 implies 4 byte shape numbers but 2 implies 8 byte shape numbers
@@ -333,17 +313,17 @@ types:
           - id: version
             type: u4
           - id: cxx_type
-            type: string
+            type: dtype::string
           - id: version_parent
             type: u4
           - id: name
-            type: string
+            type: dtype::string
           - id: comment
-            type: string
+            type: dtype::string
           - id: manager_type
-            type: string
+            type: dtype::string
           - id: manager_group
-            type: string
+            type: dtype::string
           - id: data_type
             type: s4
           - id: options
@@ -378,11 +358,11 @@ types:
           - id: size
             type: u4
           - id: type
-            type: string
+            type: dtype::string
           - id: version
             type: u4
           - id: name
-            type: string
+            type: dtype::string
           - id: table
             type:
                 ###
@@ -400,9 +380,9 @@ types:
     column_map:
         seq:
           - id: key
-            type: string
+            type: dtype::string
           - id: val
-            type: string
+            type: dtype::string
 
     ###
     ### details for tables with 32bit row specs
@@ -475,7 +455,7 @@ types:
           - id: n_column_order
             type: u4
           - id: column_order
-            type: string
+            type: dtype::string
             repeat: expr
             repeat-expr: n_column_order
           - id: row_order
@@ -494,9 +474,9 @@ types:
     regular_table_desc:
         seq:
           - id: desc_version
-            type: string
+            type: dtype::string
           - id: comment
-            type: string
+            type: dtype::string
           - id: user_keywords
             type: table_record
           - id: private_keywords
@@ -517,7 +497,7 @@ types:
     columnset_manager:
         seq:
           - id: cxx_type
-            type: string
+            type: dtype::string
           - id: sequence_number
             type: u4
     storage_desc:
@@ -525,8 +505,8 @@ types:
           - id: version
             type: s4
             doc: |
-              Version was not output for version == 1, so there may be problems for very old tables. Per the docs, in early 
-              versions the Version number was not written and instead the number of rows was first. Later it was added and 
+              Version was not output for version == 1, so there may be problems for very old tables. Per the docs, in early
+              versions the Version number was not written and instead the number of rows was first. Later it was added and
               written as a negative number.
           - id: nrows
             type:
@@ -559,7 +539,7 @@ types:
           - id: shape
             type: iposition
             if: shape_column_definition > 0
-            
+
     storage_details:
         params:
           - id: dimensionality
@@ -571,7 +551,7 @@ types:
             type: table_record
             if: version == 1
           - id: column_name
-            type: string
+            type: dtype::string
           - id: column_version
             type: u4
             doc: |
@@ -598,7 +578,7 @@ types:
             repeat: expr
             repeat-expr: n_cols
           - id: storage           # ColumnSet
-            type: storage_desc    
+            type: storage_desc
           - id: storage_details   # ColumnInfo
             type: storage_details(details[_index].dimensions) # Parameter stored in TableDesc
             repeat: expr

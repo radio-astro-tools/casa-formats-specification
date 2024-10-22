@@ -1,5 +1,5 @@
 from kaitaistruct import KaitaiStream
-from metadata import Metadata
+from python.metadata import Metadata
 
 # Proof of concept example to print all the data manager name
 
