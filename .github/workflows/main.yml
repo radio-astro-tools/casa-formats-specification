@@ -9,7 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -18,3 +17,23 @@ jobs:
       with:
         python-version: '3.12'
     - run: pip install kaitaistruct
+
+  test-cpp:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install compiler
+      run: sudo apt install cmake build-essential
+
+    # The version here should match the one in ci/cpp/CMakeLists.txt
+    - name: Install kaitai-struct-compiler
+      run: |
+        curl -LO https://github.com/kaitai-io/kaitai_struct_compiler/releases/download/0.10/kaitai-struct-compiler_0.10_all.deb
+        sudo apt install kaitai-struct-compiler_0.10_all.deb
+
+    - name: Build C++ test executable
+      run: |
+        cd ci/cpp
+        cmake -S . -B build
+        cmake --build build
