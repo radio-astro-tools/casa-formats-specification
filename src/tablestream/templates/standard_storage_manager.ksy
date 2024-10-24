@@ -13,8 +13,40 @@ seq:
     type: header
   - id: header_remains
     size: 512 - _io.pos
+  - id: bucket
+    type: bucket(header.bucket_size)
 
 types:
+  bucket:
+    params:
+      - id: bucket_size
+        type: u4
+    seq:
+      - id: offset
+        type: u4
+      - id: data
+        size: offset - 4
+      - id: index
+        size: bucket_size - offset
+    instances:
+        first_col:
+          pos: offset
+          type: one_col
+
+  one_col:
+    seq:
+      - id: rows_stored
+        type: u4
+      - id: rows_populated
+        type: u4
+        repeat: expr
+        repeat-expr: rows_stored
+      - id: some_int
+        type: u4
+        repeat: expr
+        repeat-expr: 50
+
+
   header:
     seq:
       - id: magic
