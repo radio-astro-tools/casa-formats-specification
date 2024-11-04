@@ -33,6 +33,26 @@ types:
           pos: offset
           type: one_col
 
+  string_bucket_header:
+    seq:
+      id: free_bucket_list
+      type: u4
+      id: n_bytes_used
+      type: u4
+      doc: |
+        The number of bytes used, including gaps.
+      id: n_deleted
+      type: u4
+      doc: |
+        Total length of the gaps arising from deletion or updating with a
+        shorter string.
+      id: next_bucket
+      type: u4
+      doc: |
+        The bucket containing the continuation of the last string in the bucket.
+        If value is -1 there is no continuation.
+
+
   one_col:
     seq:
       - id: rows_stored
