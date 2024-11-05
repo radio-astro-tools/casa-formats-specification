@@ -30,7 +30,7 @@ jobs:
     - name: Install kaitai-struct-compiler
       run: |
         curl -LO https://github.com/kaitai-io/kaitai_struct_compiler/releases/download/0.10/kaitai-struct-compiler_0.10_all.deb
-        sudo apt install kaitai-struct-compiler_0.10_all.deb
+        sudo apt install ./kaitai-struct-compiler_0.10_all.deb
 
     - name: Build C++ test executable
       run: |
