@@ -24,7 +24,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install compiler
-      run: sudo apt install cmake build-essential
+      run: sudo apt install cmake build-essentials
 
     # The version here should match the one in ci/cpp/CMakeLists.txt
     - name: Install kaitai-struct-compiler
