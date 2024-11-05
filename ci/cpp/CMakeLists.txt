@@ -32,16 +32,36 @@ endif()
 # Convenient link to the directory containing the ksy files
 set(TEMPLATE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../src/tablestream/templates)
 
-# Generate the cpp files from metadata.ksy
+# Generate the cpp files from the various ksy files
 add_custom_command(OUTPUT dtype.cpp metadata.cpp VERBATIM
-    DEPENDS ${TEMPLATE_DIR}/metadata.ksy
-    COMMAND kaitai-struct-compiler -t cpp_stl --cpp-standard=11
-            ${TEMPLATE_DIR}/metadata.ksy
+  DEPENDS ${TEMPLATE_DIR}/metadata.ksy
+  COMMAND kaitai-struct-compiler -t cpp_stl --cpp-standard=11
+          ${TEMPLATE_DIR}/metadata.ksy
 )
 
-add_executable(test-cpp dtype.cpp metadata.cpp test.cpp)
-target_include_directories(test-cpp PRIVATE ${kaitai_struct_cpp_stl_runtime_SOURCE_DIR})
-target_link_libraries(test-cpp PRIVATE kaitai_struct_cpp_stl_runtime)
+add_custom_command(OUTPUT lock.cpp VERBATIM
+  DEPENDS ${TEMPLATE_DIR}/lock.ksy
+  COMMAND kaitai-struct-compiler -t cpp_stl --cpp-standard=11
+          ${TEMPLATE_DIR}/lock.ksy
+)
+
+add_custom_command(OUTPUT standard_storage_manager.cpp VERBATIM
+  DEPENDS ${TEMPLATE_DIR}/standard_storage_manager.ksy
+  COMMAND kaitai-struct-compiler -t cpp_stl --cpp-standard=11
+          ${TEMPLATE_DIR}/standard_storage_manager.ksy
+)
+
+add_executable(test-cpp
+  dtype.cpp
+  lock.cpp
+  metadata.cpp
+  standard_storage_manager.cpp
+  test.cpp)
+
+target_include_directories(test-cpp
+  PRIVATE ${kaitai_struct_cpp_stl_runtime_SOURCE_DIR})
+target_link_libraries(test-cpp
+  PRIVATE kaitai_struct_cpp_stl_runtime)
 # Allows compilation to go further, but these should be fixed
 target_compile_options(test-cpp PRIVATE
     $<$<CXX_COMPILER_ID:GNU>:-fpermissive>
