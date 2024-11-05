@@ -23,10 +23,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install compiler
+    # Need for a recent version of cmake
+    - name: Install kitware cmake archive
+      run: |
+        curl -LO https://apt.kitware.com/kitware-archive.sh
+        bash kitware-archive.sh
+
+    - name: Install compiler and cmake
       run: |
         sudo apt update -y
-        sudo apt install -y cmake build-essential
+        sudo apt install -y build-essential cmake
 
     # The version here should match the one in ci/cpp/CMakeLists.txt
     - name: Install kaitai-struct-compiler
