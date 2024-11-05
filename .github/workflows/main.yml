@@ -27,7 +27,7 @@ jobs:
     - name: Install kitware cmake archive
       run: |
         curl -LO https://apt.kitware.com/kitware-archive.sh
-        bash kitware-archive.sh
+        sudo bash kitware-archive.sh
 
     - name: Install compiler and cmake
       run: |
