@@ -342,7 +342,7 @@ types:
             type: u4
           - id: desc
             type: record_desc
-    column_details:
+    column_details:    # ColumnDesc[ncol]
         seq:
           - id: version
             type: u4
@@ -619,7 +619,69 @@ types:
             repeat-expr: n_cols
           - id: n_data_manager_info
             type: u4
-          - id: data_manager_info
-            type: u1
+          - id: dminfo
+            type: dm_header_info
             repeat: expr
-            repeat-expr: n_data_manager_info
+            repeat-expr: 16
+
+    dm_header_info:
+      seq:
+        - id: magic
+          contents: [ 0xbe, 0xbe, 0xbe, 0xbe ]
+          doc: |
+              casa magic unsigned int 3200171710  190 190 190 190
+        - id: size
+          type: u4
+        - id: type
+          type: string
+        - id: version
+          type: u4
+        - id: column_offset
+          type:
+                ###
+                ### there seems to be no enum that can be used to distinguish
+                ### reference tables from regular tables
+                ###
+                switch-on: type.value
+                cases:
+                    '"ISM"': ism_info
+                    '"SSM"': ssm_info
+                    _ : unknown_info
+
+    unknown_info:
+      seq:
+        - id: idk
+          type: u1
+
+    ism_info:
+      seq:
+        - id: name
+          type: string
+        - id: idk
+          type: u4
+
+    ssm_info:
+      seq:
+        - id: name
+          type: string
+        - id: column_offset
+          type: block
+        - id: column_index_map
+          type: block
+        - id: filler
+          type: u4
+
+    block:
+      seq:
+        - id: n_rows
+          type: u4
+        - id: name
+          type: string
+        - id: version
+          type: u4
+        - id: size
+          type: u4
+        - id: elements
+          type: u4
+          repeat: expr
+          repeat-expr: size
