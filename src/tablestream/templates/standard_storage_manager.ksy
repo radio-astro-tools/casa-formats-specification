@@ -16,6 +16,7 @@ seq:
   - id: bucket
     type: bucket(header.bucket_size)
 
+
 types:
   bucket:
     params:
@@ -29,7 +30,7 @@ types:
       - id: index
         size: bucket_size - offset
     instances:
-        first_col:
+        columns:
           pos: offset
           type: one_col
 
@@ -60,11 +61,11 @@ types:
       - id: rows_populated
         type: u4
         repeat: expr
-        repeat-expr: rows_stored
+        repeat-expr: 2 #rows_stored
       - id: some_int
         type: u4
         repeat: expr
-        repeat-expr: 50
+        repeat-expr: 1 #50
 
 
   header:
@@ -91,10 +92,10 @@ types:
         type: u4
         doc: |
           Cache size in buckets
-      - id: first_free_bucket
-        type: s4
       - id: n_index_buckets
         type: u4
+      - id: first_free_bucket
+        type: s4
       - id: first_index_bucket
         type: s4
       - id: offset_index
