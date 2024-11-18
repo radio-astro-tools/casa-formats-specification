@@ -96,6 +96,8 @@ types:
         type: u4
       - id: first_free_bucket
         type: s4
+      - id: index_of_bucket
+        type: u4
       - id: first_index_bucket
         type: s4
       - id: offset_index
