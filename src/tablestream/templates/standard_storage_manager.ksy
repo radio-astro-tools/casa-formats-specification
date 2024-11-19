@@ -13,8 +13,11 @@ seq:
     type: header
   - id: header_remains
     size: 512 - _io.pos
+    doc: |
+      This is just the remainder of the 512 bytes allocated to the header.
+      Nothing to see here really.
   - id: bucket
-    type: bucket(header.bucket_size)
+    type: data_bucket(header.bucket_size, header.n_buckets)
 
 
 types:
@@ -33,6 +36,19 @@ types:
         columns:
           pos: offset
           type: one_col
+
+  data_bucket:
+    params:
+      - id: bucket_size
+        type: u4
+      - id: n_buckets
+        type: u4
+
+    seq:
+      - id: data
+        size: bucket_size
+        repeat: expr
+        repeat-expr: n_buckets
 
   string_bucket_header:
     seq:
@@ -61,11 +77,12 @@ types:
       - id: rows_populated
         type: u4
         repeat: expr
-        repeat-expr: 2 #rows_stored
+        repeat-expr: 1 #rows_stored
       - id: some_int
         type: u4
         repeat: expr
         repeat-expr: 1 #50
+
 
 
   header:
@@ -86,27 +103,41 @@ types:
         if: version > 2
       - id: bucket_size
         type: u4
+        doc: |
+          Bucket size in bytes
       - id: n_buckets
         type: u4
+        doc: |
+          Number of buckets
       - id: cache_size
         type: u4
         doc: |
           Cache size in buckets
-      - id: n_index_buckets
+      - id: n_free_buckets
         type: u4
+        doc: |
+          Number of free buckets
       - id: first_free_bucket
         type: s4
-      - id: index_of_bucket
+        doc: |
+          First free bucket (None=-1)
+      - id: n_index_buckets
         type: u4
       - id: first_index_bucket
         type: s4
       - id: offset_index
         type: u4
         if: version > 1
+        doc: |
+          Offset of index in bucket (No string heap => -1)
       - id: last_string_heap_bucket
         type: s4
+        doc: |
+          Last string heap bucket (None = -1)
       - id: index_length
         type: u4
+        doc: |
+          Index length in bytes
       - id: n_indicies
         type: u4
 
