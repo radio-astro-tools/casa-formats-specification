@@ -272,12 +272,6 @@ types:
           - id: value
             type: data_value(type)
 
-    hacky:
-        seq:
-          - id: size
-            type: u4
-          - id: type
-            type: string
 
     subrecord_desc:
         seq:
@@ -300,18 +294,18 @@ types:
             type: type_name("RecordDesc")
           - id: version
             type: u4
-          - id: n_fields
+          - id: n_keywords
             type: s4
           - id: fields
             type: record_field_desc
             repeat: expr
-            repeat-expr: n_fields
+            repeat-expr: n_keywords
           - id: record_type
             type: s4
           - id: values
             type: record_field_value(fields[_index].type)
             repeat: expr
-            repeat-expr: n_fields
+            repeat-expr: n_keywords
 
     iposition:
         seq:
@@ -342,7 +336,8 @@ types:
             type: u4
           - id: desc
             type: record_desc
-    column_details:    # ColumnDesc[ncol]
+
+    column_desc:    # ColumnDesc[ncol]
         seq:
           - id: version
             type: u4
@@ -507,11 +502,11 @@ types:
     ###
     regular_table_desc:
         seq:
-          - id: desc_version
+          - id: version
             type: string
           - id: comment
             type: string
-          - id: user_keywords
+          - id: table_keywords
             type: table_record
           - id: private_keywords
             type: table_record
@@ -534,6 +529,7 @@ types:
             type: string
           - id: sequence_number
             type: u4
+
     storage_desc:
         seq:
           - id: version
@@ -555,7 +551,7 @@ types:
           - id: sequence_number
             type: u4
             doc: |
-              Highest datamanager sequence used.
+              Highest data manager sequence used.
           - id: n_managers
             type: u4
           - id: managers
@@ -607,17 +603,17 @@ types:
        seq:
           - id: n_cols
             type: u4
-          - id: details
-            type: column_details  # ColumnDesc
+          - id: column_desc
+            type: column_desc  # ColumnDesc
             repeat: expr
             repeat-expr: n_cols
-          - id: storage           # ColumnSet
+          - id: column_set           # ColumnSet
             type: storage_desc
-          - id: storage_details   # ColumnInfo
-            type: storage_details(details[_index].dimensions) # Parameter stored in TableDesc
+          - id: column_info   # ColumnInfo
+            type: storage_details(column_desc[_index].dimensions) # Parameter stored in TableDesc
             repeat: expr
             repeat-expr: n_cols
-          - id: n_data_manager_info
+          - id: n_dm_info
             type: u4
           - id: dminfo
             type: dm_header_info
