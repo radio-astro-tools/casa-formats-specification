@@ -2,12 +2,13 @@
 
 import kaitaistruct
 
-from python.dtype import Dtype
 from kaitaistruct import KaitaiStruct, KaitaiStream, BytesIO
-
+from .dtype import Dtype
 
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 9):
-    raise Exception("Incompatible Kaitai Struct Python API: 0.9 or later is required, but you have %s" % (kaitaistruct.__version__))
+    raise Exception(
+        "Incompatible Kaitai Struct Python API: 0.9 or later is required, but you have %s" % (kaitaistruct.__version__))
+
 
 class Metadata(KaitaiStruct):
     """The [casacore table system](https://casacore.github.io/casacore-notes/255.html) is a binary, table
@@ -16,6 +17,7 @@ class Metadata(KaitaiStruct):
     from the telescopes and the images that are produced as a final product. This file parses only the
     table description stored in the table.dat file within the table directory.
     """
+
     def __init__(self, _io, _parent=None, _root=None):
         self._io = _io
         self._parent = _parent
@@ -27,7 +29,7 @@ class Metadata(KaitaiStruct):
         if not self.magic == b"\xBE\xBE\xBE\xBE":
             raise kaitaistruct.ValidationNotEqualError(b"\xBE\xBE\xBE\xBE", self.magic, self._io, u"/seq/0")
         self.size = self._io.read_u4be()
-        self.type = Dtype.String(self._io, self, self._root)
+        self.type = Metadata.String(self._io, self, self._root)
         self.version = self._io.read_u4be()
         _on = self.version
         if _on == 1:
@@ -37,7 +39,7 @@ class Metadata(KaitaiStruct):
         elif _on == 3:
             self.nrows = self._io.read_u8be()
         self.little_endian = self._io.read_u4be()
-        self.name = Dtype.String(self._io, self, self._root)
+        self.name = Metadata.String(self._io, self, self._root)
         self.desc = Metadata.TableDesc(self._io, self, self._root)
 
     class ArrayColumnStorageDetails(KaitaiStruct):
@@ -55,8 +57,6 @@ class Metadata(KaitaiStruct):
             if self.shape_column_definition > 0:
                 self.shape = Metadata.Iposition(self._io, self, self._root)
 
-
-
     class DataValue(KaitaiStruct):
         def __init__(self, type, _io, _parent=None, _root=None):
             self._io = _io
@@ -68,7 +68,7 @@ class Metadata(KaitaiStruct):
         def _read(self):
             _on = self.type
             if _on == 10:
-                self.value = Dtype.Complex16(self._io, self, self._root)
+                self.value = Metadata.Complex16(self._io, self, self._root)
             elif _on == 0:
                 self.value = Dtype.Uint1(self._io, self, self._root)
             elif _on == 4:
@@ -80,9 +80,9 @@ class Metadata(KaitaiStruct):
             elif _on == 1:
                 self.value = Dtype.Int1(self._io, self, self._root)
             elif _on == 11:
-                self.value = Dtype.String(self._io, self, self._root)
+                self.value = Metadata.String(self._io, self, self._root)
             elif _on == 12:
-                self.value = Dtype.String(self._io, self, self._root)
+                self.value = Metadata.String(self._io, self, self._root)
             elif _on == 3:
                 self.value = Dtype.Int2(self._io, self, self._root)
             elif _on == 5:
@@ -90,7 +90,7 @@ class Metadata(KaitaiStruct):
             elif _on == 8:
                 self.value = Dtype.Float8(self._io, self, self._root)
             elif _on == 9:
-                self.value = Dtype.Complex8(self._io, self, self._root)
+                self.value = Metadata.Complex8(self._io, self, self._root)
             elif _on == 2:
                 self.value = Dtype.Uint1(self._io, self, self._root)
             elif _on == 29:
@@ -99,7 +99,6 @@ class Metadata(KaitaiStruct):
                 self.value = Metadata.TableRecord(self._io, self, self._root)
             else:
                 self.value = Metadata.Array(self.type, self._io, self, self._root)
-
 
     class ReferenceTableDesc(KaitaiStruct):
         def __init__(self, version, _io, _parent=None, _root=None):
@@ -131,7 +130,7 @@ class Metadata(KaitaiStruct):
             self.n_column_order = self._io.read_u4be()
             self.column_order = []
             for i in range(self.n_column_order):
-                self.column_order.append(Dtype.String(self._io, self, self._root))
+                self.column_order.append(Metadata.String(self._io, self, self._root))
 
             _on = self.version
             if _on == 2:
@@ -147,6 +146,15 @@ class Metadata(KaitaiStruct):
             self._m_type = 2
             return getattr(self, '_m_type', None)
 
+    class UnknownInfo(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.idk = self._io.read_u1()
 
     class Iposition(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -156,7 +164,7 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.type = Dtype.String(self._io, self, self._root)
+            self.type = Metadata.String(self._io, self, self._root)
             self.version = self._io.read_u4be()
             self.n_elements = self._io.read_u4be()
             self.elements = []
@@ -166,8 +174,6 @@ class Metadata(KaitaiStruct):
                     self.elements.append(self._io.read_u4be())
                 elif _on == 2:
                     self.elements.append(self._io.read_u8be())
-
-
 
     class ColumnsetOptionsType(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -179,7 +185,6 @@ class Metadata(KaitaiStruct):
         def _read(self):
             self.value = self._io.read_s4be()
             self.block_size = self._io.read_u4be()
-
 
     class SubrecordDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -193,8 +198,7 @@ class Metadata(KaitaiStruct):
             self.type = Metadata.TypeName(u"RecordDesc", self._io, self, self._root)
             self.version = self._io.read_u4be()
             self.n_fields = self._io.read_s4be()
-            self.comment = Dtype.String(self._io, self, self._root)
-
+            self.comment = Metadata.String(self._io, self, self._root)
 
     class ColumnRowDetails64b(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -211,8 +215,6 @@ class Metadata(KaitaiStruct):
             for i in range(self.num_maps):
                 self.maps.append(self._io.read_u4be())
 
-
-
     class TableDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
             self._io = _io
@@ -222,15 +224,25 @@ class Metadata(KaitaiStruct):
 
         def _read(self):
             self.size = self._io.read_u4be()
-            self.type = Dtype.String(self._io, self, self._root)
+            self.type = Metadata.String(self._io, self, self._root)
             self.version = self._io.read_u4be()
-            self.name = Dtype.String(self._io, self, self._root)
+            self.name = Metadata.String(self._io, self, self._root)
             _on = self.type.value
             if _on == u"TableDesc":
                 self.table = Metadata.RegularTableDesc(self._io, self, self._root)
             elif _on == u"RefTable":
                 self.table = Metadata.ReferenceTableDesc(self.version, self._io, self, self._root)
 
+    class String(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.length = self._io.read_u4be()
+            self.value = (self._io.read_bytes(self.length)).decode(u"ASCII")
 
     class ColumnSpec(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -241,21 +253,31 @@ class Metadata(KaitaiStruct):
 
         def _read(self):
             self.n_cols = self._io.read_u4be()
-            self.details = []
+            self.column_desc = []
             for i in range(self.n_cols):
-                self.details.append(Metadata.ColumnDetails(self._io, self, self._root))
+                self.column_desc.append(Metadata.ColumnDesc(self._io, self, self._root))
 
-            self.storage = Metadata.StorageDesc(self._io, self, self._root)
-            self.storage_details = []
+            self.column_set = Metadata.StorageDesc(self._io, self, self._root)
+            self.column_info = []
             for i in range(self.n_cols):
-                self.storage_details.append(Metadata.StorageDetails(self.details[i].dimensions, self._io, self, self._root))
+                self.column_info.append(
+                    Metadata.StorageDetails(self.column_desc[i].dimensions, self._io, self, self._root))
 
-            self.n_data_manager_info = self._io.read_u4be()
-            self.data_manager_info = []
-            for i in range(self.n_data_manager_info):
-                self.data_manager_info.append(self._io.read_u1())
+            self.n_dm_info = self._io.read_u4be()
+            self.dminfo = []
+            for i in range(16):
+                self.dminfo.append(Metadata.DmHeaderInfo(self._io, self, self._root))
 
+    class Complex8(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
 
+        def _read(self):
+            self.real = self._io.read_f4be()
+            self.imaginary = self._io.read_f4be()
 
     class RecordFieldDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -265,7 +287,7 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.name = Dtype.String(self._io, self, self._root)
+            self.name = Metadata.String(self._io, self, self._root)
             self.type = self._io.read_s4be()
             if self.type == 12:
                 self.subtable_filler = self._io.read_u4be()
@@ -277,12 +299,10 @@ class Metadata(KaitaiStruct):
                 self.string_array_filler_iposition = Metadata.Iposition(self._io, self, self._root)
 
             if self.type != 25:
-                self.comment = Dtype.String(self._io, self, self._root)
+                self.comment = Metadata.String(self._io, self, self._root)
 
             if self.type == 25:
                 self.subrecord = Metadata.SubrecordDesc(self._io, self, self._root)
-
-
 
     class Array(KaitaiStruct):
         def __init__(self, type, _io, _parent=None, _root=None):
@@ -294,7 +314,7 @@ class Metadata(KaitaiStruct):
 
         def _read(self):
             self.size = self._io.read_u4be()
-            self.cxx_type = Dtype.String(self._io, self, self._root)
+            self.cxx_type = Metadata.String(self._io, self, self._root)
             self.version = self._io.read_u4be()
             self.n_shape = self._io.read_u4be()
             self.shape = []
@@ -310,7 +330,7 @@ class Metadata(KaitaiStruct):
                 elif _on == 17:
                     self.elements.append(Dtype.Uint2(self._io, self, self._root))
                 elif _on == 24:
-                    self.elements.append(Dtype.String(self._io, self, self._root))
+                    self.elements.append(Metadata.String(self._io, self, self._root))
                 elif _on == 20:
                     self.elements.append(Dtype.Float4(self._io, self, self._root))
                 elif _on == 13:
@@ -318,7 +338,7 @@ class Metadata(KaitaiStruct):
                 elif _on == 19:
                     self.elements.append(Dtype.Uint4(self._io, self, self._root))
                 elif _on == 23:
-                    self.elements.append(Dtype.Complex16(self._io, self, self._root))
+                    self.elements.append(Metadata.Complex16(self._io, self, self._root))
                 elif _on == 15:
                     self.elements.append(Dtype.Uint1(self._io, self, self._root))
                 elif _on == 21:
@@ -328,13 +348,11 @@ class Metadata(KaitaiStruct):
                 elif _on == 18:
                     self.elements.append(Dtype.Int4(self._io, self, self._root))
                 elif _on == 22:
-                    self.elements.append(Dtype.Complex8(self._io, self, self._root))
+                    self.elements.append(Metadata.Complex8(self._io, self, self._root))
                 elif _on == 30:
                     self.elements.append(Dtype.Int8(self._io, self, self._root))
 
-
-
-    class Hacky(KaitaiStruct):
+    class Block(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
             self._io = _io
             self._parent = _parent
@@ -342,9 +360,26 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
+            self.n_rows = self._io.read_u4be()
+            self.name = Metadata.String(self._io, self, self._root)
+            self.version = self._io.read_u4be()
             self.size = self._io.read_u4be()
-            self.type = Dtype.String(self._io, self, self._root)
+            self.elements = []
+            for i in range(self.size):
+                self.elements.append(self._io.read_u4be())
 
+    class SsmInfo(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.name = Metadata.String(self._io, self, self._root)
+            self.column_offset = Metadata.Block(self._io, self, self._root)
+            self.column_index_map = Metadata.Block(self._io, self, self._root)
+            self.filler = self._io.read_u4be()
 
     class ColumnRowDetails32b(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -361,7 +396,17 @@ class Metadata(KaitaiStruct):
             for i in range(self.n_maps):
                 self.maps.append(self._io.read_u4be())
 
+    class DmInfo(KaitaiStruct):
+        def __init__(self, ncolumns, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self.ncolumns = ncolumns
+            self._read()
 
+        def _read(self):
+            self.n_column_sets = Metadata.Array(self.ncolumns, self._io, self, self._root)
+            self.column_bucket_offset = Metadata.Array(self.ncolumns, self._io, self, self._root)
 
     class Default(KaitaiStruct):
         def __init__(self, type, _io, _parent=None, _root=None):
@@ -374,7 +419,7 @@ class Metadata(KaitaiStruct):
         def _read(self):
             _on = self.type
             if _on == 10:
-                self.value = Dtype.Complex16(self._io, self, self._root)
+                self.value = Metadata.Complex16(self._io, self, self._root)
             elif _on == 0:
                 self.value = Dtype.Uint1(self._io, self, self._root)
             elif _on == 4:
@@ -386,7 +431,7 @@ class Metadata(KaitaiStruct):
             elif _on == 1:
                 self.value = Dtype.Int1(self._io, self, self._root)
             elif _on == 11:
-                self.value = Dtype.String(self._io, self, self._root)
+                self.value = Metadata.String(self._io, self, self._root)
             elif _on == 3:
                 self.value = Dtype.Int2(self._io, self, self._root)
             elif _on == 5:
@@ -394,7 +439,7 @@ class Metadata(KaitaiStruct):
             elif _on == 8:
                 self.value = Dtype.Float8(self._io, self, self._root)
             elif _on == 9:
-                self.value = Dtype.Complex8(self._io, self, self._root)
+                self.value = Metadata.Complex8(self._io, self, self._root)
             elif _on == 2:
                 self.value = Dtype.Uint1(self._io, self, self._root)
             elif _on == 29:
@@ -402,6 +447,16 @@ class Metadata(KaitaiStruct):
             else:
                 self.value = Metadata.Array(self.type, self._io, self, self._root)
 
+    class IsmInfo(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.name = Metadata.String(self._io, self, self._root)
+            self.idk = self._io.read_u4be()
 
     class RegularTableDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -411,9 +466,9 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.desc_version = Dtype.String(self._io, self, self._root)
-            self.comment = Dtype.String(self._io, self, self._root)
-            self.user_keywords = Metadata.TableRecord(self._io, self, self._root)
+            self.version = Metadata.String(self._io, self, self._root)
+            self.comment = Metadata.String(self._io, self, self._root)
+            self.table_keywords = Metadata.TableRecord(self._io, self, self._root)
             self.private_keywords = Metadata.TableRecord(self._io, self, self._root)
             self.columns = Metadata.ColumnSpec(self._io, self, self._root)
 
@@ -425,7 +480,6 @@ class Metadata(KaitaiStruct):
             self._m_type = 1
             return getattr(self, '_m_type', None)
 
-
     class RecordFieldValue(KaitaiStruct):
         def __init__(self, type, _io, _parent=None, _root=None):
             self._io = _io
@@ -436,7 +490,6 @@ class Metadata(KaitaiStruct):
 
         def _read(self):
             self.value = Metadata.DataValue(self.type, self._io, self, self._root)
-
 
     class StorageDetails(KaitaiStruct):
         def __init__(self, dimensionality, _io, _parent=None, _root=None):
@@ -451,7 +504,7 @@ class Metadata(KaitaiStruct):
             if self.version == 1:
                 self.column_keyword_set = Metadata.TableRecord(self._io, self, self._root)
 
-            self.column_name = Dtype.String(self._io, self, self._root)
+            self.column_name = Metadata.String(self._io, self, self._root)
             self.column_version = self._io.read_u4be()
             self.manager_number = self._io.read_u4be()
             if self.dimensionality > 0:
@@ -459,8 +512,6 @@ class Metadata(KaitaiStruct):
 
             if self.dimensionality < 0:
                 self.array_shape_in_column = self._io.read_u1()
-
-
 
     class StorageDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -487,8 +538,6 @@ class Metadata(KaitaiStruct):
             for i in range(self.n_managers):
                 self.managers.append(Metadata.ColumnsetManager(self._io, self, self._root))
 
-
-
     class TypeName(KaitaiStruct):
         def __init__(self, value, _io, _parent=None, _root=None):
             self._io = _io
@@ -503,8 +552,7 @@ class Metadata(KaitaiStruct):
             if not self.name == self.value:
                 raise kaitaistruct.ValidationNotEqualError(self.value, self.name, self._io, u"/types/type_name/seq/1")
 
-
-    class ColumnDetails(KaitaiStruct):
+    class ColumnDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
             self._io = _io
             self._parent = _parent
@@ -513,12 +561,12 @@ class Metadata(KaitaiStruct):
 
         def _read(self):
             self.version = self._io.read_u4be()
-            self.cxx_type = Dtype.String(self._io, self, self._root)
+            self.cxx_type = Metadata.String(self._io, self, self._root)
             self.version_parent = self._io.read_u4be()
-            self.name = Dtype.String(self._io, self, self._root)
-            self.comment = Dtype.String(self._io, self, self._root)
-            self.manager_type = Dtype.String(self._io, self, self._root)
-            self.manager_group = Dtype.String(self._io, self, self._root)
+            self.name = Metadata.String(self._io, self, self._root)
+            self.comment = Metadata.String(self._io, self, self._root)
+            self.manager_type = Metadata.String(self._io, self, self._root)
+            self.manager_group = Metadata.String(self._io, self, self._root)
             self.data_type = self._io.read_s4be()
             self.options = self._io.read_s4be()
             self.dimensions = self._io.read_s4be()
@@ -531,13 +579,11 @@ class Metadata(KaitaiStruct):
 
             self.keywords = Metadata.TableRecord(self._io, self, self._root)
             self.column_template_class_version = self._io.read_u4be()
-            if  ((self.dimensions == 0) and (self.data_type != 25)) :
+            if ((self.dimensions == 0) and (self.data_type != 25)):
                 self.default = Metadata.Default(self.data_type, self._io, self, self._root)
 
-            if  ((self.dimensions != 0) and (self.data_type != 25)) :
+            if ((self.dimensions != 0) and (self.data_type != 25)):
                 self.dummy_flag = self._io.read_u1()
-
-
 
     class ColumnsetManager(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -547,9 +593,19 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.cxx_type = Dtype.String(self._io, self, self._root)
+            self.cxx_type = Metadata.String(self._io, self, self._root)
             self.sequence_number = self._io.read_u4be()
 
+    class Complex16(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
+
+        def _read(self):
+            self.real = self._io.read_f8be()
+            self.imaginary = self._io.read_f8be()
 
     class ColumnMap(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -559,9 +615,8 @@ class Metadata(KaitaiStruct):
             self._read()
 
         def _read(self):
-            self.key = Dtype.String(self._io, self, self._root)
-            self.val = Dtype.String(self._io, self, self._root)
-
+            self.key = Metadata.String(self._io, self, self._root)
+            self.val = Metadata.String(self._io, self, self._root)
 
     class RecordDesc(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -574,17 +629,15 @@ class Metadata(KaitaiStruct):
             self.size = self._io.read_u4be()
             self.type = Metadata.TypeName(u"RecordDesc", self._io, self, self._root)
             self.version = self._io.read_u4be()
-            self.n_fields = self._io.read_s4be()
+            self.n_keywords = self._io.read_s4be()
             self.fields = []
-            for i in range(self.n_fields):
+            for i in range(self.n_keywords):
                 self.fields.append(Metadata.RecordFieldDesc(self._io, self, self._root))
 
             self.record_type = self._io.read_s4be()
             self.values = []
-            for i in range(self.n_fields):
+            for i in range(self.n_keywords):
                 self.values.append(Metadata.RecordFieldValue(self.fields[i].type, self._io, self, self._root))
-
-
 
     class TableRecord(KaitaiStruct):
         def __init__(self, _io, _parent=None, _root=None):
@@ -599,5 +652,25 @@ class Metadata(KaitaiStruct):
             self.version = self._io.read_u4be()
             self.desc = Metadata.RecordDesc(self._io, self, self._root)
 
+    class DmHeaderInfo(KaitaiStruct):
+        def __init__(self, _io, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root if _root else self
+            self._read()
 
-
+        def _read(self):
+            self.magic = self._io.read_bytes(4)
+            if not self.magic == b"\xBE\xBE\xBE\xBE":
+                raise kaitaistruct.ValidationNotEqualError(b"\xBE\xBE\xBE\xBE", self.magic, self._io,
+                                                           u"/types/dm_header_info/seq/0")
+            self.size = self._io.read_u4be()
+            self.type = Metadata.String(self._io, self, self._root)
+            self.version = self._io.read_u4be()
+            _on = self.type.value
+            if _on == u"ISM":
+                self.column_offset = Metadata.IsmInfo(self._io, self, self._root)
+            elif _on == u"SSM":
+                self.column_offset = Metadata.SsmInfo(self._io, self, self._root)
+            else:
+                self.column_offset = Metadata.UnknownInfo(self._io, self, self._root)
