@@ -11,6 +11,8 @@ meta:
     license: LGPL-2.0-or-later
     ks-version: 0.10
     endian: le
+    imports:
+      - dtype
 
 doc: |
   The [casacore table system](https://casacore.github.io/casacore-notes/255.html) is a binary, table
@@ -25,53 +27,48 @@ seq:
     - id: trash
       size: 512 - _io.pos
     - id: data
-      type: bucket(header.bucket_size)
+      type: block(header.bucket_size)
       repeat: expr
       repeat-expr: header.num_buckets
-    - id: index_set
-      type: index_set
+
+instances:
+  index_set:
+    pos: header.bucket_size + 0x0200    # 512 = 0x0200 or the header size
+    type: index_set
+
 
 types:
-
-    bucket:
+    block:
         params:
           - id: bucket_size
             type: u4
+
         seq:
-          - id: index_offset
+          - id: index_offset                  # This is length in astropy
             type: u4
           - id: data
             size: index_offset - 4
+          - id: n_indices
+            type: u4
           - id: index
-            size: bucket_size - index_offset
+            type: u4
+            repeat: expr
+            repeat-expr: n_indices
+          - id: offsets
+            type: u4
+            repeat: expr
+            repeat-expr: n_indices
+
         instances:
-          first_col:
-            pos: 28977
-            type: one_col
+            n_indicies:
+              pos: 0x0200
+              type: u4
 
-    one_col:
-        seq:
-          - id: rows_stored
-            type: u4
-          - id: rows_populated
-            type: u4
-            repeat: expr
-            repeat-expr: rows_stored
-          - id: some_int
-            type: u4
-            repeat: expr
-            repeat-expr: 50
-
-    onex_col:
-        seq:
-          - id: num_rows
-            type: u4
-          - id: row_numbers_of_values_stored_in_row
-            type: u4
-          - id: offset_in_data_part_of_values_stored
-            type: u4
-            repeat: expr
-            repeat-expr: num_rows
+            values:
+              pos: 0x0204
+              type: u4                    # [coldesc.stype] This is much more complex and will need to be a function to determine the appropriate data type.
+              repeat: expr
+              repeat-expr: n_indices
 
     data_block:
         params:
@@ -89,7 +86,7 @@ types:
           - id: size
             type: u4
           - id: name
-            size: value.length # `str.length` gives the number of *characters*, not bytes as we would need here; but in ASCII they're equal
+            size: value.length      # `str.length` gives the number of *characters*, not bytes as we would need here; but in ASCII they're equal
             type: str
             encoding: ASCII
             valid:
@@ -100,7 +97,7 @@ types:
           - id: magic
             contents: [ 0xbe, 0xbe, 0xbe, 0xbe ]
             doc: casa magic unsigned int 3200171710  190 190 190 190
-          - id: number01
+          - id: number
             type: u4
           - id: type
             type: string
@@ -136,10 +133,10 @@ types:
             type: u4
           - id: blocks_in_use
             type: u4
-          - id: index_2_row
+          - id: row_number
             doc: rows_p in ISMIndex.cc
             type: index_map(version)
-          - id: index_2_bucket
+          - id: bucket_number
             doc: bucketNr_p in ISMIndex.cc, row number index_2_row[i] starts in bucket number index_2_bucket[i]
             type: index_map(version)
 
@@ -148,7 +145,7 @@ types:
           - id: index_version
             type: u4
         seq:
-          - id: number
+          - id: n_rows
             type: u4
           - id: type
             type: type_name("Block")

@@ -1,3 +1,4 @@
+import numpy as np
 from kaitaistruct import KaitaiStream
 from python.metadata import Metadata
 from python.table_incremental_store import TableIncrementalStore
@@ -57,9 +58,54 @@ def get_data():
             open(
                 "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms/table.f10",
                 "rb")) as _io:
-
         table = TableIncrementalStore(_io)
         print(f"Number of bucket: {table.header.num_buckets} (size: {table.header.bucket_size})")
 
         for bucket in table.data:
             print(f"data:\n{bucket.data}")
+
+
+def get_index():
+    with KaitaiStream(
+            open(
+                "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms/table.f10",
+                "rb")) as _io:
+        table = TableIncrementalStore(_io)
+        print(f"Number of bucket: {table.header.num_buckets} (size: {table.header.bucket_size})")
+
+        for bucket in table.data:
+            print(f"data:\n{bucket.index}")
+
+
+def get_column_description(column):
+    with KaitaiStream(
+            open(
+                "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms/table.dat",
+                "rb")) as _io:
+        m = Metadata(_io)
+
+        for desc in m.desc.table.columns.column_desc:
+            if desc.name.value == column:
+                return desc
+
+
+def get_scan_numbers():
+    values = []
+    indices = []
+    elements = []
+
+    filename = "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms/table.f10"
+    with KaitaiStream(open(filename, "rb")) as _io:
+        table = TableIncrementalStore(_io)
+        column_desc = get_column_description("SCAN_NUMBER")
+        for entry in table.data:
+            values.append(entry.values)
+            indices.append(entry.index)
+
+        for element in table.index_set.row_number.elements:
+            elements.append(element)
+        #indices = type(table.data.index)
+
+        indices[0].append(36580) # This is a hack till I can get it properly.
+
+        return np.repeat(values, np.diff(indices[0]))
