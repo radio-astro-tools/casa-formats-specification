@@ -24,7 +24,7 @@ doc: |
 
 params:
     - id: stream
-      type: metadata
+      type: io[]
 
 seq:
     - id: header
@@ -70,9 +70,9 @@ types:
               type: u4
 
             values:
-              io: _root.stream.desc._io
+              io: _root.stream
               pos: 0x0204
-              type: data_value(_io.table.columns.column_desc[_index].data_type)
+              type: data_value(_io.desc.table.columns.column_desc[_index].data_type)
               repeat: expr
               repeat-expr: n_indices
 
