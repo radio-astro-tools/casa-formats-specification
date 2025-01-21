@@ -13,6 +13,7 @@ meta:
     endian: le
     imports:
       - dtype
+      - metadata
 
 doc: |
   The [casacore table system](https://casacore.github.io/casacore-notes/255.html) is a binary, table
@@ -20,6 +21,10 @@ doc: |
   the data collected from radio telescopes. It can be used to store both the raw visibilities as collected
   from the telescopes and the images that are produced as a final product. This file parses only the
   table description stored in the table.dat file within the table directory.
+
+params:
+    - id: stream
+      type: metadata
 
 seq:
     - id: header
@@ -65,8 +70,9 @@ types:
               type: u4
 
             values:
+              io: _root.stream.desc._io
               pos: 0x0204
-              type: u4                    # [coldesc.stype] This is much more complex and will need to be a function to determine the appropriate data type.
+              type: data_value(_io.table.columns.column_desc[_index].data_type)
               repeat: expr
               repeat-expr: n_indices
 
@@ -77,6 +83,97 @@ types:
         seq:
           - id: block
             size: block_size
+
+    #################### Data types #######################
+
+    data_value:
+        params:
+          - id: type
+            type: s4
+        seq:
+          - id: value
+            type:
+                switch-on: type
+                cases:
+                  0:  dtype::uint1
+                  1:  dtype::int1
+                  2:  dtype::uint1
+                  3:  dtype::int2
+                  4:  dtype::uint2
+                  5:  dtype::int4
+                  6:  dtype::uint4
+                  7:  dtype::float4
+                  8:  dtype::float8
+                  9:  complex8
+                  10: complex16
+                  11: string
+                  12: string
+                  29: dtype::int8
+                  _: array(type)
+
+    complex8:
+        seq:
+          - id: real
+            type: f4
+          - id: imaginary
+            type: f4
+
+    complex16:
+        seq:
+          - id: real
+            type: f8
+          - id: imaginary
+            type: f8
+
+    string:
+        seq:
+          - id: length
+            type: u4
+          - id: value
+            type: str
+            encoding: ASCII
+            size: length
+
+    array:
+        params:
+          - id: type
+            type: u2
+        seq:
+          - id: size
+            type: u4
+          - id: cxx_type
+            type: string
+          - id: version
+            type: u4
+          - id: n_shape
+            type: u4
+          - id: shape
+            type: u4
+            repeat: expr
+            repeat-expr: n_shape
+          - id: n_elements
+            type: u4
+          - id: elements
+            repeat: expr
+            repeat-expr: n_elements
+            type:
+                switch-on: type
+                cases:
+                  13: dtype::uint1
+                  14: dtype::int1
+                  15: dtype::uint1
+                  16: dtype::int2
+                  17: dtype::uint2
+                  18: dtype::int4
+                  19: dtype::uint4
+                  20: dtype::float4
+                  21: dtype::float8
+                  22: complex8
+                  23: complex16
+                  24: string
+                  30: dtype::int8
+
+    ####################################
 
     type_name:
         params:
@@ -161,13 +258,3 @@ types:
                 _: u8
             repeat: expr
             repeat-expr: size
-
-
-    string:
-        seq:
-          - id: len
-            type: u4
-          - id: value
-            type: str
-            encoding: ASCII
-            size: len
