@@ -24,7 +24,7 @@ doc: |
 
 params:
     - id: stream
-      type: io[]
+      type: metadata
 
 seq:
     - id: header
@@ -60,21 +60,13 @@ types:
             repeat: expr
             repeat-expr: n_indices
           - id: offsets
-            type: u4
+            type:
+                switch-on: _root.stream.desc.type.value
+                cases:
+                    '"TableDesc"': data_value(_root.stream.desc.table.columns.column_desc[17].data_type)
+                    '"RefTable"': u4
             repeat: expr
             repeat-expr: n_indices
-
-        instances:
-            n_indicies:
-              pos: 0x0200
-              type: u4
-
-            values:
-              io: _root.stream
-              pos: 0x0204
-              type: data_value(_io.desc.table.columns.column_desc[_index].data_type)
-              repeat: expr
-              repeat-expr: n_indices
 
     data_block:
         params:
