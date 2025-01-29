@@ -13,7 +13,7 @@ meta:
     endian: le
     imports:
       - dtype
-      - metadata
+      - regular_table_description
 
 doc: |
   The [casacore table system](https://casacore.github.io/casacore-notes/255.html) is a binary, table
@@ -24,7 +24,7 @@ doc: |
 
 params:
     - id: stream
-      type: metadata
+      type: regular_table_description::table_desc::column_spec::column_desc
 
 seq:
     - id: header
@@ -48,6 +48,7 @@ types:
           - id: bucket_size
             type: u4
 
+
         seq:
           - id: index_offset                  # This is length in astropy
             type: u4
@@ -60,13 +61,20 @@ types:
             repeat: expr
             repeat-expr: n_indices
           - id: offsets
-            type:
-                switch-on: _root.stream.desc.type.value
-                cases:
-                    '"TableDesc"': data_value(_root.stream.desc.table.columns.column_desc[17].data_type)
-                    '"RefTable"': u4
+            type: data_value(_root.stream.data_type)
             repeat: expr
             repeat-expr: n_indices
+
+        instances:
+            n_indicies:
+              pos: 0x0200
+              type: u4
+
+            values:
+              pos: 0x0204
+              type: data_value(_root.stream.data_type.as<s4>)  # [coldesc.stype]
+              repeat: expr
+              repeat-expr: n_indices
 
     data_block:
         params:

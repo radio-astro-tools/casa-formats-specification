@@ -6,7 +6,7 @@ meta:
     - dtype
 
 doc: |
-    There are some issues with this, I need to ffigure them out but it is at least partly correct...
+    There are some issues with this, I need to figure them out but it is at least partly correct...
 
 seq:
     - id: n_processes

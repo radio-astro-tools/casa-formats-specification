@@ -1,11 +1,26 @@
 import numpy as np
 from kaitaistruct import KaitaiStream
 from python.metadata import Metadata
+from python.common import Common
+from python.regular_table_description import RegularTableDescription
 from python.table_incremental_store import TableIncrementalStore
 
 
-# Proof of concept example to print all the data manager name
+def get_table_description(is_regular_table=False):
+    with KaitaiStream(
+            open(
+                "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms"
+                "/table.dat", "rb")) as _io:
+        common_stream = Common(_io)
 
+        if is_regular_table:
+            _io.seek(common_stream.stream_position)
+            regular_table_desc = RegularTableDescription(_io=_io)
+
+        return regular_table_desc
+
+
+# Proof of concept example to print all the data manager name
 def get_managers():
     with KaitaiStream(
             open(
@@ -78,16 +93,11 @@ def get_index():
 
 
 def get_column_description(column):
-    with KaitaiStream(
-            open(
-                "/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms"
-                "/table.dat", "rb")) as _io:
-        m = Metadata(_io)
+    table_desc = get_table_description(is_regular_table=True)
 
-        for i, desc in enumerate(m.desc.table.columns.column_desc):
-            if desc.name.value == column:
-                print(f"Column [{i}]: {desc.name.value} type: {desc.data_type}")
-                return desc
+    for i, desc in enumerate(table_desc.desc.columns.column_desc):
+        if desc.name.value == column:
+            return desc
 
 
 def get_scan_numbers():
@@ -98,8 +108,10 @@ def get_scan_numbers():
     filename = ("/users/jhoskins/fornax/Development/casa-formats-specification/ea25_cal_small_before_fixed.split.ms"
                 "/table.f10")
     with KaitaiStream(open(filename, "rb")) as _io:
-        table = TableIncrementalStore(_io)
         column_desc = get_column_description("SCAN_NUMBER")
+        table = TableIncrementalStore(_io=_io, stream=column_desc)
+        print(f"{column_desc.data_type}")
+
         for entry in table.data:
             values.append(entry.values)
             indices.append(entry.index)
@@ -110,4 +122,8 @@ def get_scan_numbers():
 
         indices[0].append(36580)  # This is a hack till I can get it properly.
 
-        return np.repeat(values, np.diff(indices[0]))
+        #return np.repeat(np.squeeze(values), np.diff(indices[0]))
+        return values
+
+
+
