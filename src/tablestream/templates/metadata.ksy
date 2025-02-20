@@ -66,10 +66,13 @@ meta:
       - astronomy
     license: LGPL-2.0-or-later
     ks-version: 0.10
-    endian: be
+    endian:
+        switch-on: _root.big_endian_value
+        cases:
+          '[0x0, 0x0, 0x0, 0x0]': le
+          '[0x0, 0x0, 0x0, 0x1]': be
     imports:
       - dtype
-
 
 doc: |
   The [casacore table system](https://casacore.github.io/casacore-notes/255.html) is a binary, table
@@ -96,7 +99,7 @@ seq:
             1: u4
             2: u4
             3: u8
-    - id: little_endian
+    - id: big_endian
       type: u4
     - id: name
       type: string
@@ -107,7 +110,35 @@ seq:
       doc: |
         TableDesc
 
+instances:
+    version_bytes:
+        pos: 17
+        size: 4
+    version_size:
+        size: 0
+        type:
+            switch-on: version_bytes
+            cases:
+              '[0x0, 0x0, 0x0, 0x1]': u1_wrapper(4)
+              '[0x0, 0x0, 0x0, 0x2]': u1_wrapper(4)
+              '[0x0, 0x0, 0x0, 0x3]': u1_wrapper(8)
+              '[0x0, 0x1, 0x0, 0x0]': u1_wrapper(4)
+              '[0x0, 0x2, 0x0, 0x0]': u1_wrapper(4)
+              '[0x0, 0x3, 0x0, 0x0]': u1_wrapper(8)
+    big_endian_value:
+        pos: 25
+        size: 4
+        doc: |
+          NOTE A: this offset assumes that the table type above is "Table"
+          NOTE B: the position should be "pos: 21 + version_size.as<u1_wrapper>.value"
+                  when we find a way to make it work...
+
 types:
+    u1_wrapper:
+        params:
+          - id: value
+            type: u1
+
     complex8:
         seq:
           - id: real
