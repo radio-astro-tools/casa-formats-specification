@@ -69,12 +69,12 @@ meta:
     endian:
         switch-on: version_bytes
         cases:
-          '[0x0, 0x0, 0x0, 0x1]': be
-          '[0x0, 0x0, 0x0, 0x2]': be
-          '[0x0, 0x0, 0x0, 0x3]': be
-          '[0x0, 0x1, 0x0, 0x0]': le
-          '[0x0, 0x2, 0x0, 0x0]': le
-          '[0x0, 0x3, 0x0, 0x0]': le
+            0x00000001: be
+            0x00000002: be
+            0x00000003: be
+            0x01000000: le
+            0x02000000: le
+            0x03000000: le
     imports:
       - dtype
 
@@ -117,7 +117,7 @@ seq:
 instances:
     version_bytes:
         pos: 17
-        size: 4
+        type: u4be
 
 types:
     complex8:
