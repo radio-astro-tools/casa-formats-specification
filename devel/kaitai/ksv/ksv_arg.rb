@@ -4,45 +4,6 @@ require 'kaitai/struct/struct'
 
 ARGS = [ ]
 
-#module Kaitai::Struct::Visualizer
-#  class KSYCompiler
-#    old_compile = instance_method(:compile_formats)
-#    compiled_hash = { }
-#
-#    define_method(:compile_formats) { |*args|
-#      ################################################################################
-#      ###  It is unclear how supplying multiple ksy files on the command line for  ###
-#      ###  changes the return value for KSYCompiler::compile_formats which always  ###
-#      ###  returns a SINGLE main class name.                                       ###
-#      ################################################################################
-#      # Strip out ARGs evaluated below (no longer needed)
-#      ksy_files = []
-#      if args.size == 1
-#        args[0].each do |fn|
-#          ksy_files << fn if File.extname(fn) == ".ksy"
-#        end
-#      end
-#
-#      if ksy_files.size == 1
-#        if compiled_hash.key? ksy_files[0]
-#          ## ksy file already compiled and loaded
-#          $stderr.puts "----------------------------------------------------------------------------------------------------"
-#          $stderr.puts "Using cached value for #{ksy_files[0]}"
-#          $stderr.puts "----------------------------------------------------------------------------------------------------"
-#          compiled_hash[ksy_files[0]]
-#        else
-#          main_class_name = old_compile.bind(self).call( *args )
-#          compiled_hash[ksy_files[0]] = main_class_name
-#          main_class_name
-#        end
-#      else
-#        # main_class_name = old_compile.bind(self).call( *args.map{ |lst| lst.select{ |a| a.class == String } } )
-#        old_compile.bind(self).call( *args )
-#      end
-#    }
-#  end
-#end
-
 module Kaitai::Struct
   class Struct
     ####################################################################
