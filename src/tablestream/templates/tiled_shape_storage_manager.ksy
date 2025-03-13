@@ -92,18 +92,43 @@ types:
         seq:
           - id: unknown
             type: u4
-          - id: type
-            type: string
-          #- id: record
-          #  type: t_record
-          # Read record here ln #92 tiled.py
+          - id: umm
+            type: u4
+          - id: record
+            type: record
           - id: flag
             type: b1
 
-  t_record:
+  read_type:
         seq:
-          - id: record_header
-            type: u1
+          - id: type
+            type: string
+          - id: version
+            type: u4
+
+  record:
+        seq:
+          - id: header
+            type: read_type
+          - id: record_description
+            type: record_description
+
+  record_description:
+        seq:
+          - id: header
+            type: read_type
+          - id: n_records
+            type: u4
+          - id: name
+            type: u4
+          #- id: description_list
+          #  type: description_list
+
+
+  description_list:
+        seq:
+          - id: name
+            type: string
 
   itsms_cube_size:
         seq:
