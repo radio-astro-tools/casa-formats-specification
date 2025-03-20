@@ -1,3 +1,56 @@
+# Copyright (C) 2022
+# Associated Universities, Inc. Washington DC, USA.
+#
+# This library is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Library General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at your
+# option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Library General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Library General Public License
+# along with this library; if not, write to the Free Software Foundation,
+# Inc., 675 Massachusetts Ave, Cambridge, MA 02139, USA.
+#
+###
+### casacore data types:
+### --------------------------------------------------------------------------------------
+###   0           TpBool
+###   1           TpChar
+###   2           TpUChar
+###   3           TpShort
+###   4           TpUShort
+###   5           TpInt
+###   6           TpUInt
+###   7           TpFloat
+###   8           TpDouble
+###   9           TpComplex
+###   10          TpDComplex
+###   11          TpString
+###   12          TpTable
+###   13          TpArrayBool
+###   14          TpArrayChar
+###   15          TpArrayUChar
+###   16          TpArrayShort
+###   17          TpArrayUShort
+###   18          TpArrayInt
+###   19          TpArrayUInt
+###   20          TpArrayFloat
+###   21          TpArrayDouble
+###   22          TpArrayComplex
+###   23          TpArrayDComplex
+###   24          TpArrayString
+###   25          TpRecord
+###   26          TpOther
+###   27          TpQuantity
+###   28          TpArrayQuantity
+###   29          TpInt64
+###   30          TpArrayInt64
+###
+
 meta:
     id: tiled_shape
     title: Casacore Table Data System StandardStMan layout
@@ -64,14 +117,51 @@ seq:
       type: u4
     - id: itsm_dimension
       type: itsms_dimension
-#      repeat: expr
-#      repeat-expr: n_record_files
+      repeat: expr
+      repeat-expr: n_record_files
+    - id: default_tile_shape
+      type: iposition
+    - id : number_used_row_map
+      type: u4
+    - id: last_row
+      doc: |
+        The data might be split into multiple cubes (TSM<index> files). The
+        following three values help us piece these together into the main
+        hypercube. Each of the lists has length n_cubes where n_cubes is the
+        number of individual cubes.
 
-#    - id: tile_size
-#      type: iposition
+        The index of the last row in the final hypercube in each section. For
+        instance, [9, 19] means that the ten first rows (0-9) are in the first
+        subcube and the second set of ten rows (10-19) are in the second cube.
+      type: block
+    - id: cube_index
+      doc: |
+        The index of the cube in which the rows are stored - this is the value
+        used as a suffix in the TSM filename, e.g. TSM2
+      type: block
+    - id: last_row_subcube
+      doc: |
+        The index of the last row of the subcube
+      type: block
+
 
 
 types:
+  block:
+        seq:
+          - id: n_rows
+            type: u4
+          - id: name
+            type: string
+          - id: version
+            type: u4
+          - id: size
+            type: u4
+          - id: elements
+            type: u4
+            repeat: expr
+            repeat-expr: size
+
   header:
         seq:
           - id: magic
@@ -92,15 +182,24 @@ types:
         seq:
           - id: unknown
             type: u4
-          - id: umm
-            type: u4
           - id: record
             type: record
           - id: flag
             type: b1
+          - id: n_dimensions
+            type: u4
+          - id: cube_shapes
+            type: iposition
+          - id: tile_shapes
+            type: iposition
+          - id: more_unknown
+            type: u8
+
 
   read_type:
         seq:
+          - id: nbytes
+            type: u4
           - id: type
             type: string
           - id: version
@@ -108,7 +207,7 @@ types:
 
   record:
         seq:
-          - id: header
+          - id: type
             type: read_type
           - id: record_description
             type: record_description
@@ -119,16 +218,58 @@ types:
             type: read_type
           - id: n_records
             type: u4
-          - id: name
+          - id: sub_record_description
+            type: sub_record_description
+            repeat: expr
+            repeat-expr: n_records
+          - id: unknown
             type: u4
-          #- id: description_list
-          #  type: description_list
 
 
-  description_list:
+
+  sub_record_description:
         seq:
           - id: name
             type: string
+          - id: type
+            type: u4
+          - id: value
+            doc: | "This won't work completely as is. All the types are not defined."
+            type:
+                switch-on: type
+                cases:
+                  0:  string                 # bool
+                  5:  string                 # int
+                  6:  string                 # uint
+                  7:  string                 # float
+                  8:  string                 # double
+                  9:  string                 # complex float
+                  10: string                 # complex double
+                  11: string                 # string
+                  12: sub_record_table       # table
+                  25: sub_record_description # record description
+                  _:  sub_record_array
+
+  sub_record_table:
+        seq:
+          - id: value
+            size: 8
+
+  sub_record_array:
+        seq:
+          - id: value
+            type: iposition
+          - id: unknown
+            size: 4
+
+  sub_record_description:
+        seq:
+          - id: value
+            type: record_description
+          - id: unknown
+            size: u4
+
+
 
   itsms_cube_size:
         seq:
@@ -161,22 +302,19 @@ types:
 
   iposition:
         seq:
+          - id: nbytes
+            type: u4
           - id: type
             type: string
           - id: version
-            doc: |
-              1 implies 4 byte shape numbers but 2 implies 8 byte shape numbers
             type: u4
           - id: n_elements
             type: u4
           - id: elements
-            type:
-                switch-on: version
-                cases:
-                  1: u4
-                  2: u8
+            type: u4
             repeat: expr
             repeat-expr: n_elements
+
 
   type_name:
         params:
