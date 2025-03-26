@@ -15,7 +15,6 @@ def get_data(filename):
     with KaitaiStream(open(filename, "rb")) as _io:
         column_desc = get_column_description("DATA")
         #table = TableIncrementalStore(_io=_io, stream=column_desc)
-        print(f"{column_desc.manager_type}")
 
         return column_desc
 
@@ -38,3 +37,34 @@ def get_table_description(is_regular_table=False):
             regular_table_desc = RegularTableDescription(_io=_io)
 
         return regular_table_desc
+def get_info(name="DATA", is_regular_table=True):
+    with KaitaiStream(
+            open(
+                "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms"
+                "/table.dat", "rb")) as _io:
+        common_stream = Common(_io)
+
+        if is_regular_table:
+            _io.seek(common_stream.stream_position)
+            regular_table_desc = RegularTableDescription(_io=_io)
+
+        for i, entry in enumerate(regular_table_desc.desc.columns.column_info):
+            if entry.column_name.value == name:
+                print(f"name: {name}, sequence: {entry.manager_number}")
+
+                sequence_number = entry.manager_number
+    file = f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms/table.f{sequence_number}"
+    with KaitaiStream(
+            open(f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms/table.f{sequence_number}", "rb")) as _io:
+
+        print(f"file: {file}")
+        tiled_manager = TiledShapeStorageManager(_io)
+
+        print(f"size: {tiled_manager.cube_index.size}")
+        print(f"n_rows: {tiled_manager.cube_index.n_rows}")
+
+        for element in tiled_manager.cube_index.elements:
+            print(f"cube: {element}")
+
+        print(f"default: {tiled_manager.default_tile_shape.elements}")
+        print(f"tsm indicies: {np.unique(tiled_manager.cube_index.elements)}")
