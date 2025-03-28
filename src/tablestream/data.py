@@ -28,7 +28,7 @@ def get_column_description(column):
 def get_table_description(is_regular_table=False):
     with KaitaiStream(
             open(
-                "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms"
+                "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.ms"
                 "/table.dat", "rb")) as _io:
         common_stream = Common(_io)
 
@@ -40,7 +40,7 @@ def get_table_description(is_regular_table=False):
 def get_info(name="DATA", is_regular_table=True):
     with KaitaiStream(
             open(
-                "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms"
+                "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.ms"
                 "/table.dat", "rb")) as _io:
         common_stream = Common(_io)
 
@@ -53,9 +53,9 @@ def get_info(name="DATA", is_regular_table=True):
                 print(f"name: {name}, sequence: {entry.manager_number}")
 
                 sequence_number = entry.manager_number
-    file = f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms/table.f{sequence_number}"
+    file = f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.ms/table.f{sequence_number}"
     with KaitaiStream(
-            open(f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.split.ms/table.f{sequence_number}", "rb")) as _io:
+            open(f"/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.ms/table.f{sequence_number}", "rb")) as _io:
 
         print(f"file: {file}")
         tiled_manager = TiledShapeStorageManager(_io)
@@ -68,3 +68,50 @@ def get_info(name="DATA", is_regular_table=True):
 
         print(f"default: {tiled_manager.default_tile_shape.elements}")
         print(f"tsm indicies: {np.unique(tiled_manager.cube_index.elements)}")
+
+        for index in tiled_manager.cube_index.elements:
+            read_tsm(
+                index=index,
+                sequence_number=entry.manager_number,
+                manager=tiled_manager,
+                total_shape=tiled_manager.itsm_dimension[index].cube_shapes.elements,
+                chunk_shape=tiled_manager.itsm_dimension[index].tile_shapes.elements
+            )
+
+def read_tsm(index, sequence_number, manager, total_shape, chunk_shape):
+    # The following is mostly out of the astropy code and I don't completely follow it yet
+    # but .... for speed of development ....
+
+    total_shape = np.array(total_shape)
+    chunk_shape = np.array(chunk_shape)
+    chunk_size = np.prod(chunk_shape)
+
+    stacks = np.ceil(total_shape / chunk_shape).astype(int)
+    target_chunk_size = 10000000       # not sure where this comes from in the astropy code
+    if chunk_size < target_chunk_size:
+        # Find optimal chunk - since we want to be efficient we want the new
+        # chunks to be contiguous on disk so we first try and increase the
+        # chunk size in x, then y, etc.
+
+        chunk_oversample = previous_chunk_oversample = [1 for i in range(len(chunk_shape))]
+
+        finished = False
+        for dim in range(len(chunk_shape)):
+
+            factors = [f for f in range(stacks[dim] + 1) if stacks[dim] % f == 0]
+
+            for factor in factors:
+                chunk_oversample[dim] = factor
+                if np.prod(chunk_oversample) * chunk_size > target_chunk_size:
+                    chunk_oversample = previous_chunk_oversample
+                    finished = True
+                    break
+                previous_chunk_oversample = chunk_oversample.copy()
+            if finished:
+                break
+
+    else:
+        chunk_oversample = (1,) * len(chunk_shape)
+
+    chunk_shape = [chunk * oversample for (chunk, oversample) in zip(chunk_shape, chunk_oversample)]
+    print(f"chunk_shape: {chunk_shape}")
