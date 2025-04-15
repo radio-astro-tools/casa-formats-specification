@@ -1,11 +1,14 @@
+import pathlib
+
 import numpy as np
 
 from kaitaistruct import KaitaiStream
 
-from python.metadata import Metadata
-from python.common import Common
-from python.regular_table_description import RegularTableDescription
-from python.tiled_shape_storage_manager import TiledShapeStorageManager
+from casaio.tablestream.python.metadata import Metadata
+from casaio.tablestream.python.common import Common
+from casaio.tablestream.python.regular_table_description import RegularTableDescription
+from casaio.tablestream.python.tiled_shape_storage_manager import TiledShapeStorageManager
+from casaio.tablestream.python.tsm_binary_data import TsmBinaryData
 
 def get_data(filename):
     values = []
@@ -37,7 +40,7 @@ def get_table_description(is_regular_table=False):
             regular_table_desc = RegularTableDescription(_io=_io)
 
         return regular_table_desc
-def get_info(name="DATA", is_regular_table=True):
+def get_column(name="DATA", is_regular_table=True):
     with KaitaiStream(
             open(
                 "/home/mystletainn/Development/casaio/data/Antennae_North.cal.lsrk.ms"
@@ -70,7 +73,8 @@ def get_info(name="DATA", is_regular_table=True):
         print(f"tsm indicies: {np.unique(tiled_manager.cube_index.elements)}")
 
         for index in tiled_manager.cube_index.elements:
-            read_tsm(
+            data = read_tsm(
+                filename=file,
                 index=index,
                 sequence_number=entry.manager_number,
                 manager=tiled_manager,
@@ -78,13 +82,19 @@ def get_info(name="DATA", is_regular_table=True):
                 chunk_shape=tiled_manager.itsm_dimension[index].tile_shapes.elements
             )
 
-def read_tsm(index, sequence_number, manager, total_shape, chunk_shape):
+
+        return data
+
+def read_tsm(filename, index, sequence_number, manager, total_shape, chunk_shape):
     # The following is mostly out of the astropy code and I don't completely follow it yet
     # but .... for speed of development ....
 
     total_shape = np.array(total_shape)
     chunk_shape = np.array(chunk_shape)
+    chunk_shape = list(map(int, chunk_shape))
+
     chunk_size = np.prod(chunk_shape)
+    memory_map = True
 
     stacks = np.ceil(total_shape / chunk_shape).astype(int)
     target_chunk_size = 10000000       # not sure where this comes from in the astropy code
@@ -113,5 +123,46 @@ def read_tsm(index, sequence_number, manager, total_shape, chunk_shape):
     else:
         chunk_oversample = (1,) * len(chunk_shape)
 
-    chunk_shape = [chunk * oversample for (chunk, oversample) in zip(chunk_shape, chunk_oversample)]
-    print(f"chunk_shape: {chunk_shape}")
+    #chunk_shape = [chunk * oversample for (chunk, oversample) in zip(chunk_shape, chunk_oversample)]
+    #print(f"chunk shape: {chunk_shape}")
+
+    data_file = filename + f"_TSM{index}"
+    #print(f"data_file: {data_file}")
+
+    #with KaitaiStream(open(data_file, "rb")) as _io:
+    #    tsm_data = TsmBinaryData(_io)
+
+    tsm_data = np.fromfile(data_file, dtype=np.complex64)
+
+    data_length = np.prod(total_shape)
+
+    return tsm_data[:data_length]
+
+    #new_tsm_data = array.combine_chunks(
+    #    tsm_data,
+    #    np.dtype("<c8").itemsize,
+    #    chunk_shape,
+    #    chunk_oversample
+    #)
+
+    #return new_tsm_data
+
+    #wrapper = array.ArrayWrapper(
+    #    filename=data_file,
+    #    totalshape=total_shape,
+    #    chunkshape=chunk_shape,
+    #    chunkoversample=chunk_oversample,
+    #    dtype="<c8",
+    #    itemsize=np.dtype("<c8").itemsize,
+    #    memmap=memory_map,
+    #    offset=0
+    #)
+
+    return wrapper
+    #import uuid
+    #from dask import array as darray
+
+    #da = darray.from_array(wrapper, name="CASA data " + str(uuid.uuid4()), chunks=chunk_shape[::-1], meta=np.array([[[]]], dtype="<c8"))
+    #final_slice = tuple([slice(dimension) for dimension in total_shape[::-1]])
+    #return da[final_slice]
+

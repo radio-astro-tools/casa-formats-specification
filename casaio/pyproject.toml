@@ -1,0 +1,31 @@
+[project]
+name = "casaio"
+version = "0.0.1"
+description = "Binary File Reader for CASA Measurement Set V2 IO "
+authors = [
+    {name = "Joshua Hoskins", email="jhoskins@nrao.edu"}
+]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+requires-python = ">= 3.10, < 3.12"
+
+dependencies = [
+    'astropy',
+    'cerberus',
+    'dask',
+    'dask_jobqueue',
+    'distributed',
+    'matplotlib',
+    'numba>=0.57.0',
+    'numpy',
+    'ipywidgets',
+    'pytest',
+    'pytest-cov',
+    'pytest-html',
+    'toolviper',
+    'xarray',
+    'zarr',
+    'jupyterlab',
+    'pyarrow',
+    'graphviz',
+]

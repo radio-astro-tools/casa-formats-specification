@@ -12,7 +12,7 @@ corresponding sections of the byte and string representation are highlighted to 
 source of the structure elements. This is very useful for understanding how binary files are being
 parsed:
 
-![ksv usage](./kaitai-struct-ksv.png)
+![ksv usage](kaitai-struct-ksv.png)
 
 By default, ksv does not support parameters so it is not possible to _visualize_ the casacore table
 storage managers that require information from `table.dat`. However, `ksv_arg.rb`, which is found in this
