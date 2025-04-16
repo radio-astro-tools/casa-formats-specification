@@ -14,19 +14,19 @@ from casaio.tablestream.python.tsm_binary_data import TsmBinaryData
 
 class Table:
     def __init__(self):
-        self.base_name = None
+        self.basename = None
 
-    def set_file(self, base_name: str)->None:
+    def set_file(self, basename: str)->None:
 
         # Make sure the file exists
-        if pathlib.Path(base_name).exists():
-            if self.base_name is not None:
-                logger.warning(f"File name changed: {self.base_name} --> {base_name}")
+        if pathlib.Path(basename).exists():
+            if self.basename is not None:
+                logger.warning(f"File name changed: {self.basename} --> {basename}")
 
-            self.base_name = base_name
+            self.basename = basename
 
         else:
-            logger.error(f"File does not exist: {base_name}")
+            logger.error(f"File does not exist: {basename}")
 
 
     def get_column(self, name: str, is_regular_table=True)->None:
