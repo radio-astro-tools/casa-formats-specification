@@ -9,7 +9,7 @@ from kaitaistruct import KaitaiStream
 
 from casaio.tablestream.python.common import Common
 from casaio.tablestream.python.tiled_shape_storage_manager import TiledShapeStorageManager
-
+from casaio.io import constants
 
 class OpenKaitaiStream:
     def __init__(self, filename: str, mode: str="rb"):
@@ -34,19 +34,12 @@ class OpenKaitaiStream:
         if not self.file_handle is None:
             self.file_handle.close()
 
-def load_manager(name: str)->Union[object, None]:
-    manager_list = {
-        "IncrementalStMan": "incremental_storage_manager",
-        "StandardStMan": "standard_storage_manager",
-        "TiledStMan": "tiled_storage_manager",
-        "TiledShapeStMan": "tiled_shape_storage_manager"
-    }
-
-    if not name in manager_list.keys():
+def load_manager(name: str)->Union[type[TiledShapeStorageManager], None]:
+    if not name in constants.manager_list.keys():
         logger.error(f"Module {name} not found")
         return None
 
-    package = ".".join(["python", manager_list[name]])
-    manager = importlib.import_module(name="casaio", package=package)
+    module = ".".join(["casaio.tablestream.python", constants.manager_list[name]["module"]])
+    manager = importlib.import_module(name=module)
 
-    return manager
+    return getattr(manager, constants.manager_list[name]["package"])

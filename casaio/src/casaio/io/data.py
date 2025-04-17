@@ -158,7 +158,7 @@ def read_tsm(filename, index, sequence_number, manager, total_shape, chunk_shape
     #    offset=0
     #)
 
-    return wrapper
+    #return wrapper
     #import uuid
     #from dask import array as darray
 
