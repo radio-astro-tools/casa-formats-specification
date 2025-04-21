@@ -5,6 +5,8 @@ import toolviper.utils.logger as logger
 
 from typing import Union, Dict
 
+from casaio.io import constants
+
 from casaio.tablestream.python.common import Common
 from casaio.tablestream.python.regular_table_description import RegularTableDescription
 
@@ -45,6 +47,7 @@ class Table:
                     logger.debug(f"Column name: {name}: sequence number: {entry.manager_number}")
                     sequence_number = entry.manager_number
                     manager_type = self.regular_table_desc.desc.columns.column_desc[i].manager_type.value
+                    data_type = self.regular_table_desc.desc.columns.column_desc[i].data_type
 
 
         if sequence_number is None:
@@ -66,6 +69,7 @@ class Table:
 
                 data[index] = self.read_tsm(
                     filename=tsm_filename,
+                    data_type=data_type,
                     total_shape=manager.itsm_dimension[index].cube_shapes.elements,
                     chunk_shape=manager.itsm_dimension[index].tile_shapes.elements
                 )
@@ -73,14 +77,14 @@ class Table:
         return data
 
     @staticmethod
-    def read_tsm(filename, total_shape, chunk_shape):
+    def read_tsm(filename, data_type, total_shape, chunk_shape):
         # This needs to be moved to the manager class provisionally
 
         total_shape = np.array(total_shape)
         chunk_shape = np.array(chunk_shape)
         chunk_shape = list(map(int, chunk_shape))
 
-        tsm_data = np.fromfile(filename, dtype=np.complex64)
+        tsm_data = np.fromfile(filename, dtype=constants.casacore_data_types[data_type])
 
         data_length = np.prod(total_shape)
 
