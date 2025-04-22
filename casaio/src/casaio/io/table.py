@@ -13,8 +13,8 @@ from casaio.tablestream.python.regular_table_description import RegularTableDesc
 from casaio.io import filestream
 
 class Table:
-    def __init__(self):
-        self.basename = None
+    def __init__(self, basename=None):
+        self.basename = basename
         self.regular_table_desc = None
 
 
@@ -54,6 +54,7 @@ class Table:
             logger.error(f"Column name: {name}: not found in regular table")
             return None
 
+        # From here should probably be part of a manager class for a tiled standard manager
         filename = str(pathlib.Path(self.basename).joinpath(f"table.f{sequence_number}").absolute())
         with  filestream.OpenKaitaiStream(filename) as _io:
             manager_package = filestream.load_manager(name=manager_type)
@@ -84,6 +85,8 @@ class Table:
         chunk_shape = np.array(chunk_shape)
         chunk_shape = list(map(int, chunk_shape))
 
+        # This line will work for the file I have, but the dtype qualifier needs to be changed to
+        # reflect the endianess in a later version.
         tsm_data = np.fromfile(filename, dtype=constants.casacore_data_types[data_type])
 
         data_length = np.prod(total_shape)

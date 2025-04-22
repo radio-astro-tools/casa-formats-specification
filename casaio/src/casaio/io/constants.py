@@ -1,6 +1,5 @@
 # Map dictionary of c++ based manager name to katitai manager class
 import numpy as np
-from numba import np_float32
 
 manager_list = {
         "StandardStMan": {
