@@ -1,13 +1,12 @@
 import pathlib
 import importlib
 
-#import toolviper.utils.logger as logger
+import toolviper.utils.logger as logger
 
 from typing import Union
 
 from kaitaistruct import KaitaiStream
 
-#from casaio.tablestream.python.common import Common
 from casaio.tablestream.python.tiled_shape_storage_manager import TiledShapeStorageManager
 from casaio.io import constants
 
@@ -36,7 +35,7 @@ class OpenKaitaiStream:
 
 def load_manager(name: str)->Union[type[TiledShapeStorageManager], None]:
     if not name in constants.manager_list.keys():
-        #logger.error(f"Module {name} not found")
+        logger.error(f"Module {name} not found")
         return None
 
     module = ".".join(["casaio.tablestream.python", constants.manager_list[name]["module"]])
