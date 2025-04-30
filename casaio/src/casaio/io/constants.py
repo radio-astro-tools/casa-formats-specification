@@ -7,7 +7,7 @@ manager_list = {
             "package": "StandardStorageManager"
         },
         "TiledShapeStMan": {
-            "module": "tiled_shape_storage_manager",
+            "module": "tiled",
             "package": "TiledShapeStorageManager"
         }
 }

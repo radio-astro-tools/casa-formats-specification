@@ -3,7 +3,7 @@ import importlib
 
 import toolviper.utils.logger as logger
 
-from typing import Union
+from typing import Union, IO
 
 from kaitaistruct import KaitaiStream
 
@@ -12,10 +12,10 @@ from casaio.io import constants
 
 class OpenKaitaiStream:
     def __init__(self, filename: str, mode: str="rb"):
-        self.filename = filename
-        self.file_handle = None
-        self.mode = mode
-        self.file = None
+        self.filename: str = filename
+        self.file_handle: Union[None, IO] = None
+        self.mode: str = mode
+        self.file: Union[str, None] = None
 
     def __enter__(self):
         path = pathlib.Path(self.filename)
@@ -38,7 +38,7 @@ def load_manager(name: str)->Union[type[TiledShapeStorageManager], None]:
         logger.error(f"Module {name} not found")
         return None
 
-    module = ".".join(["casaio.tablestream.python", constants.manager_list[name]["module"]])
+    module = ".".join(["casaio.io.managers", constants.manager_list[name]["module"]])
     manager = importlib.import_module(name=module)
 
     return getattr(manager, constants.manager_list[name]["package"])
