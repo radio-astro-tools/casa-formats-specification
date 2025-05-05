@@ -1,12 +1,8 @@
 import pathlib
 
-import numpy as np
 import toolviper.utils.logger as logger
 
 from typing import Union, Dict
-
-import casaio.io.managers.tiled
-from casaio.io import constants
 
 from casaio.tablestream.python.common import Common
 from casaio.tablestream.python.regular_table_description import RegularTableDescription
@@ -36,7 +32,7 @@ class Table:
             pass
 
 
-    def get_column(self, name: str, is_regular_table=True)->Union[None, Dict]:
+    def get_column(self, name: str, is_regular_table=True, reshape: bool=False)->Union[None, Dict]:
 
 
         filename = str(pathlib.Path(self.basename).joinpath("table.dat").absolute())
@@ -70,7 +66,7 @@ class Table:
             manager_package = filestream.load_manager(name=manager_type)
             manager = manager_package(_io=_io, filename=filename)
 
-        return manager.get_column(data_type=data_type)
+        return manager.get_column(data_type=data_type, reshape=reshape)
 
 
 

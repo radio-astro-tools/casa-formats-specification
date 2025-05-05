@@ -15,7 +15,7 @@ class TiledShapeStorageManager:
         self.manager = tiled_shape_storage_manager.TiledShapeStorageManager(_io)
 
     @cython.ccall
-    def get_column(self, data_type: type) -> Dict:
+    def get_column(self, data_type: type, reshape: bool=False) -> Dict:
         # Working with the managers from here on out, in the case of a get_column() function,
         # this should probably be a special class that handles the differences between different
         #  managers, but for now I'm going to use direct access.
@@ -28,7 +28,8 @@ class TiledShapeStorageManager:
                 filename=tsm_filename,
                 data_type=data_type,
                 total_shape=self.manager.itsm_dimension[index].cube_shapes.elements,
-                chunk_shape=self.manager.itsm_dimension[index].tile_shapes.elements
+                chunk_shape=self.manager.itsm_dimension[index].tile_shapes.elements,
+                reshape=reshape
             )
 
         return data
@@ -36,10 +37,14 @@ class TiledShapeStorageManager:
 
     @cython.ccall
     @staticmethod
-    def read_tsm(filename, data_type, total_shape, chunk_shape):
+    def read_tsm(filename, data_type, total_shape, chunk_shape, reshape: bool=False):
 
         total_shape = np.array(total_shape)
+        print(f"total shape: {total_shape}")
+
         chunk_shape = np.array(chunk_shape)
+        print(f"chunk shape: {chunk_shape}")
+
         chunk_shape = list(map(int, chunk_shape))
 
         # This line will work for the file I have, but the dtype qualifier needs to be changed to
@@ -48,4 +53,7 @@ class TiledShapeStorageManager:
 
         data_length = np.prod(total_shape)
 
-        return tsm_data[:data_length].reshape(total_shape)
+        if reshape:
+            return tsm_data[:data_length].reshape(total_shape)
+
+        return tsm_data
