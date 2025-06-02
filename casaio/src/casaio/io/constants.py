@@ -3,7 +3,7 @@ import numpy as np
 
 manager_list = {
         "StandardStMan": {
-            "module": "standard_storage_manager",
+            "module": "standard",
             "package": "StandardStorageManager"
         },
         "TiledShapeStMan": {

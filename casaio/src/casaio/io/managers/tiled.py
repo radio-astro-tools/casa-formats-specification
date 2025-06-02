@@ -3,16 +3,18 @@ import numpy as np
 
 from casaio.io import constants
 from casaio.tablestream.python import tiled_shape_storage_manager
+from casaio.tablestream.python.regular_table_description import RegularTableDescription
 
 from typing import Union, Dict, IO
 
 @cython.cclass
 class TiledShapeStorageManager:
-    __slots__ = "filename", "manager"
+    __slots__ = "filename", "manager", "table_description"
 
     def __init__(self, filename: Union[None, str] = None, _io=IO):
         self.filename = filename
         self.manager = tiled_shape_storage_manager.TiledShapeStorageManager(_io)
+        self.table_description = None
 
     @cython.ccall
     def get_column(self, data_type: type, reshape: bool=False) -> Dict:
@@ -40,10 +42,10 @@ class TiledShapeStorageManager:
     def read_tsm(filename, data_type, total_shape, chunk_shape, reshape: bool=False):
 
         total_shape = np.array(total_shape)
-        print(f"total shape: {total_shape}")
+        #print(f"total shape: {total_shape}")
 
         chunk_shape = np.array(chunk_shape)
-        print(f"chunk shape: {chunk_shape}")
+        #print(f"chunk shape: {chunk_shape}")
 
         chunk_shape = list(map(int, chunk_shape))
 

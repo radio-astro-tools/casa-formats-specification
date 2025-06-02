@@ -55,6 +55,7 @@ class Table:
                     sequence_number = entry.manager_number
                     manager_type = self.regular_table_desc.desc.columns.column_desc[i].manager_type.value
                     data_type = self.regular_table_desc.desc.columns.column_desc[i].data_type
+                    print(f"dtype: {data_type}")
 
         if sequence_number is None:
             logger.error(f"Column name: {name}: not found in regular table")
@@ -68,6 +69,27 @@ class Table:
 
         return manager.get_column(data_type=data_type, reshape=reshape)
 
+    def get_column_description(self, name: str, is_regular_table=True, reshape: bool=False)->Union[None, Dict]:
 
+
+        filename = str(pathlib.Path(self.basename).joinpath("table.dat").absolute())
+        sequence_number = None
+
+        with  filestream.OpenKaitaiStream(filename) as _io:
+            if self.common_stream is None:
+                self.common_stream = Common(_io)
+
+            if is_regular_table:
+                _io.seek(self.common_stream.stream_position)
+
+                if self.regular_table_desc is None:
+                    self.regular_table_desc = RegularTableDescription(_io=_io)
+
+            for i, entry in enumerate(self.regular_table_desc.desc.columns.column_info):
+                #logger.debug(f"Column name: {name}: sequence number: {entry.manager_number}")
+                sequence_number = entry.manager_number
+                manager_type = self.regular_table_desc.desc.columns.column_desc[i].manager_type.value
+                data_type = self.regular_table_desc.desc.columns.column_desc[i].data_type
+                logger.info(f"name: {entry.column_name.value}: manager type: {manager_type} [{sequence_number}: {data_type}]")
 
 
