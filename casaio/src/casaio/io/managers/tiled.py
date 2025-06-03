@@ -3,6 +3,7 @@ import numpy as np
 
 from casaio.io import constants
 from casaio.tablestream.python import tiled_shape_storage_manager
+from casaio.tablestream.python import tiled_column_storage_manager
 from casaio.tablestream.python.regular_table_description import RegularTableDescription
 
 from typing import Union, Dict, IO
@@ -68,7 +69,7 @@ class TiledColumnStorageManager:
 
     def __init__(self, filename: Union[None, str] = None, _io=IO):
         self.filename = filename
-        self.manager = tiled_shape_storage_manager.TiledShapeStorageManager(_io)
+        self.manager = tiled_column_storage_manager.TiledColumnStorageManager(_io)
         self.table_description = None
 
     @cython.ccall
@@ -78,16 +79,20 @@ class TiledColumnStorageManager:
         #  managers, but for now I'm going to use direct access.
         data = {}
 
-        for index in self.manager.cube_index.elements:
-            tsm_filename = "_".join([self.filename, f"TSM{index}"])
-
-            data[index] = self.read_tsm(
+        # This doesn't seem to exist in the column storage manager. Need to
+        # look into this more....
+        #
+        # for index in self.manager.cube_index.elements:
+        index = 0
+        tsm_filename = "_".join([self.filename, f"TSM0"])
+        print(f"type: {data_type}")
+        data[index] = self.read_tsm(
                 filename=tsm_filename,
                 data_type=data_type,
                 total_shape=self.manager.itsm_dimension[index].cube_shapes.elements,
                 chunk_shape=self.manager.itsm_dimension[index].tile_shapes.elements,
                 reshape=reshape
-            )
+        )
 
         return data
 

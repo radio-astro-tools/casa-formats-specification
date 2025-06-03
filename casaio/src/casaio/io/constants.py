@@ -9,6 +9,10 @@ manager_list = {
         "TiledShapeStMan": {
             "module": "tiled",
             "package": "TiledShapeStorageManager"
+        },
+        "TiledColumnStMan": {
+            "module": "tiled",
+            "package": "TiledColumnStorageManager"
         }
 }
 
