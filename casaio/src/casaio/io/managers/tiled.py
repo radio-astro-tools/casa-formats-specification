@@ -43,10 +43,8 @@ class TiledShapeStorageManager:
     def read_tsm(filename, data_type, total_shape, chunk_shape, reshape: bool=False):
 
         total_shape = np.array(total_shape)
-        #print(f"total shape: {total_shape}")
 
         chunk_shape = np.array(chunk_shape)
-        #print(f"chunk shape: {chunk_shape}")
 
         chunk_shape = list(map(int, chunk_shape))
 
@@ -85,7 +83,7 @@ class TiledColumnStorageManager:
         # for index in self.manager.cube_index.elements:
         index = 0
         tsm_filename = "_".join([self.filename, f"TSM0"])
-        print(f"type: {data_type}")
+
         data[index] = self.read_tsm(
                 filename=tsm_filename,
                 data_type=data_type,
