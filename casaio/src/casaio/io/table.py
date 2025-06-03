@@ -31,6 +31,30 @@ class Table:
 
             pass
 
+    def get_keywords(self, is_regular_table=True) -> None:
+        from tabulate import tabulate
+
+        filename = str(pathlib.Path(self.basename).joinpath("table.dat").absolute())
+        sequence_number = None
+
+        with  filestream.OpenKaitaiStream(filename) as _io:
+            if self.common_stream is None:
+                self.common_stream = Common(_io)
+
+            if is_regular_table:
+                _io.seek(self.common_stream.stream_position)
+
+                if self.regular_table_desc is None:
+                    self.regular_table_desc = RegularTableDescription(_io=_io)
+
+            entries = []
+
+            for i, entry in enumerate(self.regular_table_desc.desc.table_keywords.desc.fields):
+                entries.append([entry.name.value, entry.type, entry.comment.value])
+
+            table = tabulate(entries, headers=["name", "dtype", "comment"], tablefmt="fancy_outline")
+            print(table)
+            return None
 
     def get_column(self, name: str, is_regular_table=True, reshape: bool=False)->Union[None, Dict]:
 
