@@ -2,7 +2,7 @@ import pathlib
 
 import toolviper.utils.logger as logger
 
-from typing import Union, Dict
+from typing import Union, Dict, Any
 
 from casaio.tablestream.python.common import Common
 from casaio.tablestream.python.regular_table_description import RegularTableDescription
@@ -55,7 +55,6 @@ class Table:
                     sequence_number = entry.manager_number
                     manager_type = self.regular_table_desc.desc.columns.column_desc[i].manager_type.value
                     data_type = self.regular_table_desc.desc.columns.column_desc[i].data_type
-                    print(f"dtype: {data_type}")
 
         if sequence_number is None:
             logger.error(f"Column name: {name}: not found in regular table")
@@ -69,11 +68,11 @@ class Table:
 
         return manager.get_column(data_type=data_type, reshape=reshape)
 
-    def get_column_description(self, name: str, is_regular_table=True, reshape: bool=False)->Union[None, Dict]:
-
+    def get_column_description(self, is_regular_table=True, view=False)->Union[None, Dict]:
+        from tabulate import tabulate
 
         filename = str(pathlib.Path(self.basename).joinpath("table.dat").absolute())
-        sequence_number = None
+        column_description = {}
 
         with  filestream.OpenKaitaiStream(filename) as _io:
             if self.common_stream is None:
@@ -86,10 +85,31 @@ class Table:
                     self.regular_table_desc = RegularTableDescription(_io=_io)
 
             for i, entry in enumerate(self.regular_table_desc.desc.columns.column_info):
-                #logger.debug(f"Column name: {name}: sequence number: {entry.manager_number}")
+
                 sequence_number = entry.manager_number
                 manager_type = self.regular_table_desc.desc.columns.column_desc[i].manager_type.value
                 data_type = self.regular_table_desc.desc.columns.column_desc[i].data_type
-                logger.info(f"name: {entry.column_name.value}: manager type: {manager_type} [{sequence_number}: {data_type}]")
+
+                column_description[entry.column_name.value] = {
+                    "manager_type": manager_type,
+                    "sequence_number": sequence_number,
+                    "data_type": data_type,
+                }
+
+        if view:
+            entries = []
+            for key, value in column_description.items():
+                entries.append(
+                    [
+                        key,
+                        *value.values(),
+                    ]
+                )
+
+            table = tabulate(entries, headers=["name", "manager", "sequence_number", "data_type"], tablefmt="fancy_outline")
+            print(table)
+            return None
+
+        return column_description
 
 
