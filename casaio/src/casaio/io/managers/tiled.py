@@ -100,10 +100,8 @@ class TiledColumnStorageManager:
     def read_tsm(filename, data_type, total_shape, chunk_shape, reshape: bool=False):
 
         total_shape = np.array(total_shape)
-        #print(f"total shape: {total_shape}")
 
         chunk_shape = np.array(chunk_shape)
-        #print(f"chunk shape: {chunk_shape}")
 
         chunk_shape = list(map(int, chunk_shape))
 
