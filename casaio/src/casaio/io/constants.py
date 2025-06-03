@@ -86,3 +86,38 @@ casacore_data_types = {
 ###   30          TpArrayInt64
 
 }
+
+# Until the full set of objects is done I want a text list as a hold over for the view tables
+casacore_data_types_list = {
+    0: "bool",
+    1: "char",
+    2: "uchar",
+    3: "short",
+    4: "ushort",
+    5: "int32",
+    6: "uint32",
+    7: "float32",
+    8: "float64",
+    9: "complx64",
+    10: "complex128",
+    11: "string",
+    12: "table",
+    13: "array[bool]",
+    14: "array[char]",
+    15: "array[uchar]",
+    16: "array[short]",
+    17: "array[ushort]",
+    18: "array[int]",
+    19: "array[uint]",
+    20: "array[float]",
+    21: "array[double]",
+    22: "array[complex]",
+    23: "array[dcomplex]",
+    24: "array[string]",
+    25: "record",
+    26: "other",
+    27: "quantity",
+    28: "array[quantity]",
+    29: "int64",
+    30: "array[int64]"
+}
